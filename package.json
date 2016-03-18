@@ -1,0 +1,25 @@
+{
+  "name": "twitch-streams",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.6.5",
+    "babel-preset-es2015": "^6.6.0"
+  },
+  "scripts": {
+    "test": "No test brah",
+	"babel": "babel js/main.es6 -w -o js/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Virzen/twitch-streams.git"
+  },
+  "author": "Wiktor Czajkowski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Virzen/twitch-streams/issues"
+  },
+  "homepage": "https://github.com/Virzen/twitch-streams#readme"
+}
