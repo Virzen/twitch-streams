@@ -13,6 +13,12 @@
     <section id="app" class="primary-section channels">
       <h2 class="sr-only">Channels</h2>
       <button type="button" @click="toggleEditMode" class="edit-button">Toggle editing</button>
+      <form v-show="editMode" @submit.prevent="addStream" class="edit-form">
+        <label>Stream name
+          <input type="text" v-model="streamName" required>
+        </label>
+        <button type="submit">Add stream</button>
+      </form>
       <div class="channels__online">
         <h3>Online</h3>
         <article v-for="channel of channels.online" class="channel channel--online">

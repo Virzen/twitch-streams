@@ -15,6 +15,11 @@ html(lang="en")
 			
 			button(type="button", @click="toggleEditMode").edit-button Toggle editing
 			
+			form(v-show="editMode", @submit.prevent="addStream").edit-form
+				label Stream name
+					input(type="text", v-model="streamName", required)
+				button(type="submit") Add stream
+			
 			div.channels__online
 				h3 Online
 				article.channel.channel--online(v-for="channel of channels.online")

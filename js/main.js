@@ -43,7 +43,7 @@ var getSingleInfo = function getSingleInfo(callback, url) {
 	});
 };
 
-var getInfos = function getInfos(list, callback) {
+var getInfos = function getInfos(callback, list) {
 	// curry getSingleInfo function with call type and callback
 	var get = getSingleInfo.bind(null, callback);
 	var type = 'stream';
@@ -84,7 +84,7 @@ var saveChannelInfo = function saveChannelInfo(request, status) {
 
 // Initializing function
 var init = function init(channelList) {
-	getInfos(data.channelNames, saveChannelInfo);
+	getInfos(saveChannelInfo, data.channelNames);
 };
 
 new Vue({
@@ -92,7 +92,8 @@ new Vue({
 
 	data: {
 		channels: data.channelInfos,
-		editMode: false
+		editMode: false,
+		streamName: ''
 	},
 
 	methods: {
@@ -104,6 +105,9 @@ new Vue({
 			var statusStr = data.statuses[status];
 
 			this.channels[statusStr].$remove(this.channels[statusStr][index]);
+		},
+		addStream: function addStream() {
+			getSingleInfo(saveChannelInfo, url('stream', this.streamName));
 		}
 	},
 
