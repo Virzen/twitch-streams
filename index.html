@@ -12,43 +12,44 @@
     </header>
     <section id="app" class="primary-section channels">
       <h2 class="sr-only">Channels</h2>
+      <button type="button" @click="toggleEditMode" class="edit-button">Toggle editing</button>
       <div class="channels__online">
         <h3>Online</h3>
-        <article v-for="channel of online" class="channel channel--online">
+        <article v-for="channel of channels.online" class="channel channel--online">
           <header class="top">
-            <div class="avatar__container"><img src="{{ channel.logo }}" alt="{{ channel.display_name }} channel logo" class="avatar"></div>
-            <h4 class="name"><a href="{{ channel.url }}" title="Go to {{ channel.display_name }} channel">{{ channel.display_name }}</a></h4>
+            <div class="avatar__container"><img :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar"></div>
+            <h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'">{{ channel.display_name }}</a></h4>
           </header>
           <section class="bottom">
             <p class="status">{{ channel.status }}</p>
           </section>
+          <button type="button" v-show="editMode" @click="removeChannel($index, 0)" class="delete-button">Remove stream</button>
         </article>
       </div>
       <div class="channels__offline">
         <h3>Offline</h3>
-        <article v-for="channel of offline" class="channel channel--offline">
+        <article v-for="channel of channels.offline" class="channel channel--offline">
           <header class="top">
-            <div class="avatar__container"><img src="{{ channel.logo }}" alt="{{ channel.display_name }} channel logo" class="avatar"></div>
-            <h4 class="name"><a href="{{ channel.url }}" title="Go to {{ channel.display_name }} channel">{{ channel.display_name }}</a></h4>
+            <div class="avatar__container"><img :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar"></div>
+            <h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'">{{ channel.display_name }}</a></h4>
           </header>
           <section class="bottom">
             <p class="status">Offline</p>
           </section>
+          <button type="button" v-show="editMode" @click="removeChannel($index, 1)" class="delete-button">Remove stream</button>
         </article>
       </div>
       <div class="channels__nonexistent">
         <h3>Nonexistent</h3>
-        <article v-for="channel of nonexistent" class="channel channel--nonexistent">
+        <article v-for="channel of channels.nonexistent" class="channel channel--nonexistent">
           <header class="top">
             <div class="avatar avatar--placeholder"><span class="avatar--placeholder__text">?</span></div>
             <h4 class="name">{{ channel.name }}</h4>
           </header>
           <section class="bottom">
-            <p class="status">
-              User doesn't exist
-              
-            </p>
+            <p class="status">User doesn't exist</p>
           </section>
+          <button type="button" v-show="editMode" @click="removeChannel($index, 2)" class="delete-button">Remove stream</button>
         </article>
       </div>
     </section>

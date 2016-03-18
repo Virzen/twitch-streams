@@ -18,7 +18,13 @@ const data = {
 		2: 'nonexistent'
 	}),
 	channelInfos: {
-		online: [],
+		online: [
+			{
+				display_name: 'Test',
+				logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
+				status: 'Test test',
+			},
+		],
 		offline: [],
 		nonexistent: [],
 	}
@@ -35,49 +41,55 @@ const DOMElements = {
 };
 
 
+const url = function url(type, name) {
+	return `https://api.twitch.tv/kraken/${type}s/${name}?api_version=3`;
+};
+
 // API call
-const getSingleInfo = function (type, callback, name) {
+const getSingleInfo = function getSingleInfo(callback, url) {
 	$.ajax({
 		type: 'GET',
-		url: `https://api.twitch.tv/kraken/${type}s/${name}?api_version=3`,
-		complete: callback.bind(null, name, type),
+		url: url,
+		complete: callback,
 	});
 };
 
-const getInfos = function (list, callback) {
+const getInfos = function getInfos(list, callback) {
 	// curry getSingleInfo function with call type and callback
-	const get = getSingleInfo.bind(null, 'stream', callback);
+	const get = getSingleInfo.bind(null, callback);
+	const type = 'stream';
 
-	list.forEach(s => get(s));
+	list.forEach(s => get(url(type, s)));
 };
 
 // I know.
 // FIXME: This function needs refactoring. Serious one.
-const saveChannelInfo = function saveChannelInfo(name, type, request, status) {
+const saveChannelInfo = function saveChannelInfo(request, status) {
 	const response = request.responseJSON;
 
 	if (request) {
 		if (status === 'error') {
 			if (response.status === 422) {
-				// User doesn't exist
-				data.channelInfos[data.statuses[2]].push({name: name, logo: null});
+				// user doesn't exist
+				const name = response.message.split('\'')[1];
+				data.channelInfos.nonexistent.push({name: name, logo: null});
 			}
 			else {
 				console.error('API call error:', status, request);
 			}
 		}
 		else {
-			if (type === 'stream') {
-				if (response.stream) {
-					// channel online
-					data.channelInfos[data.statuses[0]].push(response.stream.channel);
-				}
-				else {
-					getSingleInfo('channel', saveChannelInfo, name);
-				}
+			if (response.stream) {
+				// channel online
+				data.channelInfos.online.push(response.stream.channel);
 			}
-			else if (type === 'channel') {
-				data.channelInfos[data.statuses[1]].push(response);
+			else if (response._id) {
+				// channel offline
+				data.channelInfos.offline.push(response);
+			}
+			else {
+				// make additional request for offline channel's info
+				getSingleInfo(saveChannelInfo, response._links.channel);
 			}
 		}
 	}
@@ -85,19 +97,30 @@ const saveChannelInfo = function saveChannelInfo(name, type, request, status) {
 
 
 // Initializing function
-const init = function (channelList) {
-	// curry saveChannelInfo function with storageObject
-	const save = saveChannelInfo;
-
-	getInfos(channelList, save);
+const init = function init(channelList) {
+	getInfos(data.channelNames, saveChannelInfo);
 };
 
 
-const app = new Vue({
+new Vue({
 	el: '#app',
-	data: data.channelInfos,
+
+	data: {
+		channels: data.channelInfos,
+		editMode: false,
+	},
+
+	methods: {
+		toggleEditMode() {
+			this.editMode = !this.editMode;
+			return this.editMode;
+		},
+		removeChannel(index, status) {
+			const statusStr = data.statuses[status];
+
+			this.channels[statusStr].$remove(this.channels[statusStr][index]);
+		}
+	},
+
+	ready: init,
 });
-
-
-// Fire away!
-init(data.channelNames);

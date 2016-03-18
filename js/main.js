@@ -11,7 +11,11 @@ var data = {
 		2: 'nonexistent'
 	}),
 	channelInfos: {
-		online: [],
+		online: [{
+			display_name: 'Test',
+			logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
+			status: 'Test test'
+		}],
 		offline: [],
 		nonexistent: []
 	}
@@ -26,47 +30,53 @@ var DOMElements = {
 	}
 };
 
+var url = function url(type, name) {
+	return 'https://api.twitch.tv/kraken/' + type + 's/' + name + '?api_version=3';
+};
+
 // API call
-var getSingleInfo = function getSingleInfo(type, callback, name) {
+var getSingleInfo = function getSingleInfo(callback, url) {
 	$.ajax({
 		type: 'GET',
-		url: 'https://api.twitch.tv/kraken/' + type + 's/' + name + '?api_version=3',
-		complete: callback.bind(null, name, type)
+		url: url,
+		complete: callback
 	});
 };
 
 var getInfos = function getInfos(list, callback) {
 	// curry getSingleInfo function with call type and callback
-	var get = getSingleInfo.bind(null, 'stream', callback);
+	var get = getSingleInfo.bind(null, callback);
+	var type = 'stream';
 
 	list.forEach(function (s) {
-		return get(s);
+		return get(url(type, s));
 	});
 };
 
 // I know.
 // FIXME: This function needs refactoring. Serious one.
-var saveChannelInfo = function saveChannelInfo(name, type, request, status) {
+var saveChannelInfo = function saveChannelInfo(request, status) {
 	var response = request.responseJSON;
 
 	if (request) {
 		if (status === 'error') {
 			if (response.status === 422) {
-				// User doesn't exist
-				data.channelInfos[data.statuses[2]].push({ name: name, logo: null });
+				// user doesn't exist
+				var name = response.message.split('\'')[1];
+				data.channelInfos.nonexistent.push({ name: name, logo: null });
 			} else {
 				console.error('API call error:', status, request);
 			}
 		} else {
-			if (type === 'stream') {
-				if (response.stream) {
-					// channel online
-					data.channelInfos[data.statuses[0]].push(response.stream.channel);
-				} else {
-					getSingleInfo('channel', saveChannelInfo, name);
-				}
-			} else if (type === 'channel') {
-				data.channelInfos[data.statuses[1]].push(response);
+			if (response.stream) {
+				// channel online
+				data.channelInfos.online.push(response.stream.channel);
+			} else if (response._id) {
+				// channel offline
+				data.channelInfos.offline.push(response);
+			} else {
+				// make additional request for offline channel's info
+				getSingleInfo(saveChannelInfo, response._links.channel);
 			}
 		}
 	}
@@ -74,16 +84,28 @@ var saveChannelInfo = function saveChannelInfo(name, type, request, status) {
 
 // Initializing function
 var init = function init(channelList) {
-	// curry saveChannelInfo function with storageObject
-	var save = saveChannelInfo;
-
-	getInfos(channelList, save);
+	getInfos(data.channelNames, saveChannelInfo);
 };
 
-var app = new Vue({
+new Vue({
 	el: '#app',
-	data: data.channelInfos
-});
 
-// Fire away!
-init(data.channelNames);
+	data: {
+		channels: data.channelInfos,
+		editMode: false
+	},
+
+	methods: {
+		toggleEditMode: function toggleEditMode() {
+			this.editMode = !this.editMode;
+			return this.editMode;
+		},
+		removeChannel: function removeChannel(index, status) {
+			var statusStr = data.statuses[status];
+
+			this.channels[statusStr].$remove(this.channels[statusStr][index]);
+		}
+	},
+
+	ready: init
+});
