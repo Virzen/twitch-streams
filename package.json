@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "No test brah",
-	"babel": "babel js/main.es6 -w -o js/main.js"
+	"babel": "babel js/main.es6 -w -o js/main.js --source-map"
   },
   "repository": {
     "type": "git",

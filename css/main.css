@@ -1,0 +1,135 @@
+* {
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 1.125em;
+}
+
+body {
+	background-color: #333;
+	font-family: 'Raleway', sans-serif;
+	font-weight: 400;
+	line-height: 1.45;
+	color: white;
+	max-width: 45rem;
+	margin: 0 auto;
+	padding: 1.45rem 1.45rem 0;
+	font-variant-ligatures: none;
+}
+
+h1, h2, h3, h4 {
+	margin: 1.414em 0 0.5em;
+	font-weight: inherit;
+	line-height: 1.2;
+}
+
+h1 {
+	margin-top: 0;
+	font-size: 3.157em;
+}
+
+h2 {
+	font-size: 2.369em;
+}
+
+h3 {
+	font-size: 1.777em;
+}
+
+h4 {
+	font-size: 1.333em;
+}
+
+p {
+	margin-bottom: 1.3em;
+}
+
+small, .font_small {
+	font-size: 0.75em;
+}
+
+a {
+	color: #6441A5;
+	text-decoration: none;
+}
+
+a:hover {
+	border-bottom: 1px solid #6441A5;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+
+div[class^=channels__] {
+	margin: 4.35rem 0;
+}
+
+.channel {
+	display: inline-block;
+	position: relative;
+	vertical-align: top;
+	width: 100%;
+	margin-bottom: 2.175rem;
+}
+
+.channel:last-of-type {
+	margin-bottom: 0;
+}
+
+.avatar {
+	width: 5.8rem;
+	height: 5.8rem;
+	vertical-align: middle;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.channel--online .avatar__container:after {
+	content: '';
+	display: inline-block;
+	position: absolute;
+	left: 3.9875rem;
+	top: 3.9875rem;
+	width: 1.45rem;
+	height: 1.45rem;
+	border: 0.3625rem solid #333;
+	background-color: #227230;
+}
+
+.avatar--placeholder {
+	text-align: center;
+	font-size: 4em;
+	background-color: #301A58;
+}
+
+.name {
+	padding: 0.725rem;
+	padding-left: 0;
+	margin: 0;
+}
+
+.status {
+	min-height: 2.9rem;
+	padding: 0 0 0.725rem;
+	margin: 0;
+}
+
+.top, .bottom {
+	padding-left: 7.25rem;
+}
+
+.primary-footer {
+	margin: 2.9rem 0;
+}
+
+/*# sourceMappingURL=main.css.map */

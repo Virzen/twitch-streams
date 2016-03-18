@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Twitch Streams</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Wiktor Czajkowski">
+  </head>
+  <body>
+    <header class="primary-header">
+      <h1>Twitch Streams</h1>
+    </header>
+    <section id="app" class="primary-section channels">
+      <h2 class="sr-only">Channels</h2>
+      <div class="channels__online">
+        <h3>Online</h3>
+        <article v-for="channel of online" class="channel channel--online">
+          <header class="top">
+            <div class="avatar__container"><img src="{{ channel.logo }}" alt="{{ channel.display_name }} channel logo" class="avatar"></div>
+            <h4 class="name"><a href="{{ channel.url }}" title="Go to {{ channel.display_name }} channel">{{ channel.display_name }}</a></h4>
+          </header>
+          <section class="bottom">
+            <p class="status">{{ channel.status }}</p>
+          </section>
+        </article>
+      </div>
+      <div class="channels__offline">
+        <h3>Offline</h3>
+        <article v-for="channel of offline" class="channel channel--offline">
+          <header class="top">
+            <div class="avatar__container"><img src="{{ channel.logo }}" alt="{{ channel.display_name }} channel logo" class="avatar"></div>
+            <h4 class="name"><a href="{{ channel.url }}" title="Go to {{ channel.display_name }} channel">{{ channel.display_name }}</a></h4>
+          </header>
+          <section class="bottom">
+            <p class="status">Offline</p>
+          </section>
+        </article>
+      </div>
+      <div class="channels__nonexistent">
+        <h3>Nonexistent</h3>
+        <article v-for="channel of nonexistent" class="channel channel--nonexistent">
+          <header class="top">
+            <div class="avatar avatar--placeholder"><span class="avatar--placeholder__text">?</span></div>
+            <h4 class="name">{{ channel.name }}</h4>
+          </header>
+          <section class="bottom">
+            <p class="status">
+              User doesn't exist
+              
+            </p>
+          </section>
+        </article>
+      </div>
+    </section>
+    <footer class="primary-footer"><a href="http://wiktorczajkowski.xyz">Wiktor Czajkowski</a>&copy; 2016. All right reserved.</footer>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700">
+    <script src="//code.jquery.com/jquery-2.2.2.min.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
