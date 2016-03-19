@@ -116,13 +116,34 @@ new Vue({
 			this.editMode = !this.editMode;
 			return this.editMode;
 		},
-		removeChannel(index, status) {
-			const statusStr = data.statuses[status];
-
-			this.channels[statusStr].$remove(this.channels[statusStr][index]);
-		},
 		addStream() {
 			getSingleInfo(saveChannelInfo, url('stream', this.streamName));
+		},
+	},
+
+	events: {
+		removeChannel(index, status) {
+			this.channels[status].$remove(this.channels[status][index]);
+		},
+	},
+
+	components: {
+		channel: {
+			template: '#channel-template',
+
+			props: ['index', 'channel', 'status', 'edit-mode'],
+
+			methods: {
+				removeChannel(index, status) {
+					if (this.status) {
+						console.log(index, status);
+						this.$dispatch('removeChannel', index, status);
+					}
+					else {
+						throw new Error('No status');
+					}
+				}
+			}
 		},
 	},
 
