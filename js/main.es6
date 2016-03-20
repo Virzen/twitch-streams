@@ -5,11 +5,11 @@
 const data = {
 	channelNames: [
 		'freecodecamp',
-		'ESL_LOL',
-		'ESL_SC2',
-		'SmoothMcGroove',
-		'ESL_CSGO',
-		'ObamaCareTeam',
+		'esl_lol',
+		'esl_sc2',
+		'smoothmcgroove',
+		'esl_csgo',
+		'obamacareteam',
 	],
 	statuses: Object.freeze({
 		0: 'online',
@@ -69,7 +69,6 @@ const getInfos = function getInfos(callback, list) {
  */
 const saveChannelInfo = function saveChannelInfo(storage, request, status) {
 	const response = request.responseJSON;
-	console.log(request);
 
 	if (response) {
 		if (status === 'error') {
@@ -128,12 +127,20 @@ new Vue({
 
 	events: {
 		removeChannel(id, status) {
-			const index = this.channels[status].findIndex(x => x._id === id);
-			this.channels[status].$remove(this.channels[status][index]);
+			const channel = this.channels[status].find(x => x._id === id);
+			this.channels[status].$remove(channel);
+			this.channelNames.$remove(channel.name);
 		},
 		addStream(name) {
-			const save = saveChannelInfo.bind(null, this.channels);
-			apiCall(save, createUrl('streams', name));
+			const inOnline = this.channels.online.find(channel => channel.name === name);
+			const inOffline = this.channels.offline.find(channel => channel.name === name);
+			const notAdded = !inOnline && !inOffline;
+
+			if (notAdded) {
+				const save = saveChannelInfo.bind(null, this.channels);
+				apiCall(save, createUrl('streams', name));
+				this.channelNames.push(name);
+			}
 		}
 	},
 
