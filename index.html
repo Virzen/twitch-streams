@@ -15,24 +15,54 @@
 			<h2 class="sr-only">Channels</h2>
 
 			<!-- Edit button -->
-			<button type="button" @click="toggleEditMode" class="edit-button">Toggle editing</button>
+			<button type="button" @click="toggleEditMode" class="edit-mode-button">Toggle editing</button>
 			<!-- Edit form -->
-			<form v-show="editMode" @submit.prevent="addStream" class="edit-form">
-				<label>Stream name
-					<input type="text" v-model="streamName" required>
-				</label>
-				<button type="submit">Add stream</button>
-			</form>
+			<search-form :edit-mode="editMode" inline-template>
+				<form v-show="editMode" class="edit-form">
+					<label>Search channels
+						<input type="text" v-model="streamName" @input="findStream | debounce 200">
+					</label>
+					<div class="search-results" v-show="searchResults.length > 0">
+						Results in total: {{ resultsTotal }}.<br>
+						Showing {{ resultsShown }}.
+						<search-result
+							v-for="result of searchResults"
+							track-by="_id"
+							:result="result"
+							inline-template
+						>
+							<div class="search-result">
+								<label>
+									<input type="checkbox">{{ result.name }}</checkbox>
+								</label>
+							</div>
+						</search-result>
+					</div>
+					<div v-else>No results found.</div>
+				</form>
+			</search-form>
 
 			<!-- Online channels -->
 			<div class="channels__online">
 				<h3>Online</h3>
-				<channel v-for="(index, channel) of channels.online" :index="index" :channel="channel" status="online" :edit-mode="editMode"></channel>
+				<channel v-for="(index, channel) of channels.online | orderBy 'display_name'"
+					track-by="_id"
+					:index="index"
+					:channel="channel"
+					status="online"
+					:edit-mode="editMode"
+				></channel>
 			</div>
 			<!-- Offline channels -->
 			<div class="channels__offline">
 				<h3>Offline</h3>
-				<channel v-for="(index, channel) of channels.offline" :index="index" :channel="channel" status="offline" :edit-mode="editMode"></channel>
+				<channel v-for="(index, channel) of channels.offline | orderBy 'display_name'"
+					track-by="_id"
+					:index="index"
+					:channel="channel"
+					status="offline"
+					:edit-mode="editMode"
+				></channel>
 			</div>
 		</section>
 
@@ -54,7 +84,7 @@
 				<section class="bottom">
 					<p class="status">{{ status === 'online' ? channel.status : 'Offline' }}</p>
 				</section>
-				<button type="button" v-show="editMode" @click="removeChannel(index, status)" class="delete-button">Remove stream</button>
+				<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="delete-button">Remove stream</button>
 			</article>
 		</template>
 
