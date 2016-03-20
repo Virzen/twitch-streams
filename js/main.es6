@@ -1,8 +1,8 @@
-/* global $ Vue */
+/* global $ Vue localforage */
 'use strict';
 
-// App data
-const data = {
+// App defaults
+const defaults = {
 	channelNames: [
 		'freecodecamp',
 		'esl_lol',
@@ -15,18 +15,7 @@ const data = {
 		0: 'online',
 		1: 'offline',
 		2: 'nonexistent'
-	}),
-	channelInfos: {
-		online: [
-			// {
-			// 	display_name: 'Test',
-			// 	logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
-			// 	status: 'Test test',
-			// },
-		],
-		offline: [],
-		nonexistent: [],
-	}
+	})
 };
 
 
@@ -104,8 +93,8 @@ const saveChannelInfo = function saveChannelInfo(storage, request, status) {
 
 // Initializing function
 const init = function init(channelList) {
-	const save = saveChannelInfo.bind(null, data.channelInfos);
-	getInfos(save, data.channelNames);
+
+
 };
 
 
@@ -113,9 +102,29 @@ new Vue({
 	el: '#app',
 
 	data: {
-		channelNames: data.channelNames,
-		channels: data.channelInfos,
+		channelNames: [],
+		channels: {
+			online: [],
+			offline: [],
+			nonexistent: []
+		},
 		editMode: false
+	},
+
+	created() {
+		const vm = this;
+		const save = saveChannelInfo.bind(null, vm.channels);
+
+		localforage.getItem('channelNames', function (err, value) {
+			if (err || !value) {
+				vm.channelNames = defaults.channelNames;
+			}
+			else {
+				vm.channelNames = value;
+			}
+
+			getInfos(save, vm.channelNames);
+		});
 	},
 
 	methods: {
@@ -132,15 +141,22 @@ new Vue({
 			this.channelNames.$remove(channel.name);
 		},
 		addStream(name) {
-			const inOnline = this.channels.online.find(channel => channel.name === name);
-			const inOffline = this.channels.offline.find(channel => channel.name === name);
-			const notAdded = !inOnline && !inOffline;
+			const notAdded = !Boolean(this.channelNames.find(s => s === name));
 
 			if (notAdded) {
 				const save = saveChannelInfo.bind(null, this.channels);
 				apiCall(save, createUrl('streams', name));
 				this.channelNames.push(name);
 			}
+		}
+	},
+
+	watch: {
+		channelNames() {
+			const vm = this;
+			localforage.setItem('channelNames', vm.channelNames, function (err, value) {
+				console.log(err, value);
+			});
 		}
 	},
 
@@ -206,6 +222,4 @@ new Vue({
 			}
 		}
 	},
-
-	ready: init
 });

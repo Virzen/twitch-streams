@@ -1,26 +1,15 @@
-/* global $ Vue */
+/* global $ Vue localforage */
 'use strict';
 
-// App data
+// App defaults
 
-var data = {
+var defaults = {
 	channelNames: ['freecodecamp', 'esl_lol', 'esl_sc2', 'smoothmcgroove', 'esl_csgo', 'obamacareteam'],
 	statuses: Object.freeze({
 		0: 'online',
 		1: 'offline',
 		2: 'nonexistent'
-	}),
-	channelInfos: {
-		online: [
-			// {
-			// 	display_name: 'Test',
-			// 	logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
-			// 	status: 'Test test',
-			// },
-		],
-		offline: [],
-		nonexistent: []
-	}
+	})
 };
 
 // DOM elements (batched queries for perfomance)
@@ -92,19 +81,36 @@ var saveChannelInfo = function saveChannelInfo(storage, request, status) {
 };
 
 // Initializing function
-var init = function init(channelList) {
-	var save = saveChannelInfo.bind(null, data.channelInfos);
-	getInfos(save, data.channelNames);
-};
+var init = function init(channelList) {};
 
 new Vue({
 	el: '#app',
 
 	data: {
-		channelNames: data.channelNames,
-		channels: data.channelInfos,
+		channelNames: [],
+		channels: {
+			online: [],
+			offline: [],
+			nonexistent: []
+		},
 		editMode: false
 	},
+
+	created: function created() {
+		var vm = this;
+		var save = saveChannelInfo.bind(null, vm.channels);
+
+		localforage.getItem('channelNames', function (err, value) {
+			if (err || !value) {
+				vm.channelNames = defaults.channelNames;
+			} else {
+				vm.channelNames = value;
+			}
+
+			getInfos(save, vm.channelNames);
+		});
+	},
+
 
 	methods: {
 		toggleEditMode: function toggleEditMode() {
@@ -122,19 +128,24 @@ new Vue({
 			this.channelNames.$remove(channel.name);
 		},
 		addStream: function addStream(name) {
-			var inOnline = this.channels.online.find(function (channel) {
-				return channel.name === name;
-			});
-			var inOffline = this.channels.offline.find(function (channel) {
-				return channel.name === name;
-			});
-			var notAdded = !inOnline && !inOffline;
+			var notAdded = !Boolean(this.channelNames.find(function (s) {
+				return s === name;
+			}));
 
 			if (notAdded) {
 				var save = saveChannelInfo.bind(null, this.channels);
 				apiCall(save, createUrl('streams', name));
 				this.channelNames.push(name);
 			}
+		}
+	},
+
+	watch: {
+		channelNames: function channelNames() {
+			var vm = this;
+			localforage.setItem('channelNames', vm.channelNames, function (err, value) {
+				console.log(err, value);
+			});
 		}
 	},
 
@@ -202,9 +213,7 @@ new Vue({
 				}
 			}
 		}
-	},
-
-	ready: init
+	}
 });
 
 //# sourceMappingURL=main.js.map
