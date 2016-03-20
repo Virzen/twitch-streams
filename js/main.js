@@ -1,24 +1,15 @@
-/* global $ Vue */
+/* global $ Vue localforage */
 'use strict';
 
-// App data
+// App defaults
 
-var data = {
-	channelNames: ['freecodecamp', 'ESL_LOL', 'ESL_SC2', 'SmoothMcGroove', 'brunofin', 'ESL_CSGO', 'ObamaCareTeam'],
+var defaults = {
+	channelNames: ['freecodecamp', 'esl_lol', 'esl_sc2', 'smoothmcgroove', 'esl_csgo', 'obamacareteam'],
 	statuses: Object.freeze({
 		0: 'online',
 		1: 'offline',
 		2: 'nonexistent'
-	}),
-	channelInfos: {
-		online: [{
-			display_name: 'Test',
-			logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
-			status: 'Test test'
-		}],
-		offline: [],
-		nonexistent: []
-	}
+	})
 };
 
 // DOM elements (batched queries for perfomance)
@@ -30,12 +21,13 @@ var DOMElements = {
 	}
 };
 
-var url = function url(type, name) {
-	return 'https://api.twitch.tv/kraken/' + type + 's/' + name + '?api_version=3';
+// TODO: add passing any parameters
+var createUrl = function createUrl(endpoint, data, query) {
+	return 'https://api.twitch.tv/kraken/' + endpoint + (data ? '/' + data : '') + '?api_version=3' + (query ? '&q=' + query : '');
 };
 
-// API call
-var getSingleInfo = function getSingleInfo(callback, url) {
+// API calls
+var apiCall = function apiCall(callback, url) {
 	$.ajax({
 		type: 'GET',
 		url: url,
@@ -44,74 +36,184 @@ var getSingleInfo = function getSingleInfo(callback, url) {
 };
 
 var getInfos = function getInfos(callback, list) {
-	// curry getSingleInfo function with call type and callback
-	var get = getSingleInfo.bind(null, callback);
-	var type = 'stream';
+	// curry apiCall function with callback
+	var get = apiCall.bind(null, callback);
+	var type = 'streams';
 
-	list.forEach(function (s) {
-		return get(url(type, s));
+	list.forEach(function (name) {
+		return get(createUrl(type, name));
 	});
 };
 
-// I know.
-// FIXME: This function needs refactoring. Serious one.
-var saveChannelInfo = function saveChannelInfo(request, status) {
+/**
+ * Finds out channel's status and saves it in data property accordingly
+ * @param  {JSON} request
+ * @param  {string} status
+ * @return none
+ */
+var saveChannelInfo = function saveChannelInfo(storage, request, status) {
 	var response = request.responseJSON;
 
-	if (request) {
+	if (response) {
 		if (status === 'error') {
 			if (response.status === 422) {
 				// user doesn't exist
-				var name = response.message.split('\'')[1];
-				data.channelInfos.nonexistent.push({ name: name, logo: null });
+				console.log('User doesn\'t exists.');
 			} else {
-				console.error('API call error:', status, request);
+				console.error('API call error:', status, request.responseJSON);
 			}
 		} else {
 			if (response.stream) {
 				// channel online
-				data.channelInfos.online.push(response.stream.channel);
+				storage.online.push(response.stream.channel);
 			} else if (response._id) {
 				// channel offline
-				data.channelInfos.offline.push(response);
+				storage.offline.push(response);
 			} else {
 				// make additional request for offline channel's info
-				getSingleInfo(saveChannelInfo, response._links.channel);
+				var save = saveChannelInfo.bind(null, storage);
+				apiCall(save, response._links.channel);
 			}
 		}
+	} else {
+		throw new Error('No JSON object in response.');
 	}
 };
 
 // Initializing function
-var init = function init(channelList) {
-	getInfos(saveChannelInfo, data.channelNames);
-};
+var init = function init(channelList) {};
 
 new Vue({
 	el: '#app',
 
 	data: {
-		channels: data.channelInfos,
-		editMode: false,
-		streamName: ''
+		channelNames: [],
+		channels: {
+			online: [],
+			offline: [],
+			nonexistent: []
+		},
+		editMode: false
 	},
+
+	created: function created() {
+		var vm = this;
+		var save = saveChannelInfo.bind(null, vm.channels);
+
+		localforage.getItem('channelNames', function (err, value) {
+			if (err || !value) {
+				vm.channelNames = defaults.channelNames;
+			} else {
+				vm.channelNames = value;
+			}
+
+			getInfos(save, vm.channelNames);
+		});
+	},
+
 
 	methods: {
 		toggleEditMode: function toggleEditMode() {
 			this.editMode = !this.editMode;
 			return this.editMode;
-		},
-		removeChannel: function removeChannel(index, status) {
-			var statusStr = data.statuses[status];
-
-			this.channels[statusStr].$remove(this.channels[statusStr][index]);
-		},
-		addStream: function addStream() {
-			getSingleInfo(saveChannelInfo, url('stream', this.streamName));
 		}
 	},
 
-	ready: init
+	events: {
+		removeChannel: function removeChannel(id, status) {
+			var channel = this.channels[status].find(function (x) {
+				return x._id === id;
+			});
+			this.channels[status].$remove(channel);
+			this.channelNames.$remove(channel.name);
+		},
+		addStream: function addStream(name) {
+			var notAdded = !Boolean(this.channelNames.find(function (s) {
+				return s === name;
+			}));
+
+			if (notAdded) {
+				var save = saveChannelInfo.bind(null, this.channels);
+				apiCall(save, createUrl('streams', name));
+				this.channelNames.push(name);
+			}
+		}
+	},
+
+	watch: {
+		channelNames: function channelNames() {
+			var vm = this;
+			localforage.setItem('channelNames', vm.channelNames, function (err, value) {
+				console.log(err, value);
+			});
+		}
+	},
+
+	components: {
+		channel: {
+			template: '#channel-template',
+
+			props: ['index', 'channel', 'status', 'edit-mode'],
+
+			methods: {
+				removeChannel: function removeChannel(index, status) {
+					this.$dispatch('removeChannel', index, status);
+				}
+			}
+		},
+
+		'search-form': {
+			props: ['edit-mode'],
+
+			data: function data() {
+				return {
+					streamName: '',
+					searchResults: [],
+					resultsTotal: 0,
+					selectedChannels: []
+				};
+			},
+
+			computed: {
+				resultsNumber: function resultsNumber() {
+					return this.searchResults.length;
+				}
+			},
+
+			methods: {
+				addSelected: function addSelected() {
+					var _this = this;
+
+					if (this.selectedChannels) {
+						(function () {
+							var vm = _this;
+							_this.selectedChannels.forEach(function (name) {
+								vm.$dispatch('addStream', name);
+							});
+						})();
+					}
+				},
+				save: function save(request, status) {
+					var response = request.responseJSON;
+
+					if (response) {
+						console.log(response);
+						this.resultsTotal = response._total;
+						this.searchResults = response.channels;
+					} else {
+						throw new Error('No JSON object in response.');
+					}
+				},
+				findStream: function findStream(event, url) {
+					if (this.streamName) {
+						url = url || createUrl('search/channels', null, this.streamName);
+
+						apiCall(this.save, url);
+					}
+				}
+			}
+		}
+	}
 });
 
 //# sourceMappingURL=main.js.map

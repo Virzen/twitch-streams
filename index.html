@@ -1,69 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Twitch Streams</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="author" content="Wiktor Czajkowski">
-  </head>
-  <body>
-    <header class="primary-header">
-      <h1>Twitch Streams</h1>
-    </header>
-    <section id="app" class="primary-section channels">
-      <h2 class="sr-only">Channels</h2>
-      <button type="button" @click="toggleEditMode" class="edit-button">Toggle editing</button>
-      <form v-show="editMode" @submit.prevent="addStream" class="edit-form">
-        <label>Stream name
-          <input type="text" v-model="streamName" required>
-        </label>
-        <button type="submit">Add stream</button>
-      </form>
-      <div class="channels__online">
-        <h3>Online</h3>
-        <article v-for="channel of channels.online" class="channel channel--online">
-          <header class="top">
-            <div class="avatar__container"><img :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar"></div>
-            <h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'">{{ channel.display_name }}</a></h4>
-          </header>
-          <section class="bottom">
-            <p class="status">{{ channel.status }}</p>
-          </section>
-          <button type="button" v-show="editMode" @click="removeChannel($index, 0)" class="delete-button">Remove stream</button>
-        </article>
-      </div>
-      <div class="channels__offline">
-        <h3>Offline</h3>
-        <article v-for="channel of channels.offline" class="channel channel--offline">
-          <header class="top">
-            <div class="avatar__container"><img :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar"></div>
-            <h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'">{{ channel.display_name }}</a></h4>
-          </header>
-          <section class="bottom">
-            <p class="status">Offline</p>
-          </section>
-          <button type="button" v-show="editMode" @click="removeChannel($index, 1)" class="delete-button">Remove stream</button>
-        </article>
-      </div>
-      <div class="channels__nonexistent">
-        <h3>Nonexistent</h3>
-        <article v-for="channel of channels.nonexistent" class="channel channel--nonexistent">
-          <header class="top">
-            <div class="avatar avatar--placeholder"><span class="avatar--placeholder__text">?</span></div>
-            <h4 class="name">{{ channel.name }}</h4>
-          </header>
-          <section class="bottom">
-            <p class="status">User doesn't exist</p>
-          </section>
-          <button type="button" v-show="editMode" @click="removeChannel($index, 2)" class="delete-button">Remove stream</button>
-        </article>
-      </div>
-    </section>
-    <footer class="primary-footer"><a href="http://wiktorczajkowski.xyz">Wiktor Czajkowski</a>&copy; 2016. All right reserved.</footer>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700">
-    <script src="//code.jquery.com/jquery-2.2.2.min.js"></script>
-    <script src="js/vue.js"></script>
-    <script src="js/main.js"></script>
-  </body>
+	<head>
+		<meta charset="UTF-8">
+		<title>Twitch Streams</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="author" content="Wiktor Czajkowski">
+	</head>
+	<body>
+		<header class="primary-header">
+			<h1>Twitch Streams</h1>
+		</header>
+
+		<section id="app" class="primary-section channels">
+			<h2 class="sr-only">Channels</h2>
+
+			<!-- Edit button -->
+			<button type="button" @click="toggleEditMode" class="edit-mode-button">Toggle editing</button>
+			<!-- Edit form -->
+			<search-form :edit-mode="editMode" inline-template>
+				<form v-show="editMode" @submit.prevent="addSelected" class="edit-form">
+					<label>Search channels
+						<input type="text" v-model="streamName" @input="findStream | debounce 200">
+					</label>
+					<div class="search-results" v-show="resultsNumber > 0">
+						<p>
+							Showing {{ resultsNumber }} most relevant results out of {{ resultsTotal }} total.
+						</p>
+
+						<div class="search-result"
+							v-for="result of searchResults"
+							track-by="_id"
+						>
+							<label>
+								<input type="checkbox"
+									v-model="selectedChannels"
+									:value="result.name"
+								>
+									{{ result.display_name }}
+							</label>
+						</div>
+
+						<button type="submit">Add selected</button>
+					</div>
+					<div v-else>No results found.</div>
+				</form>
+			</search-form>
+
+			<!-- Online channels -->
+			<div class="channels__online">
+				<h3>Online</h3>
+				<channel v-for="(index, channel) of channels.online | orderBy 'display_name'"
+					track-by="_id"
+					:index="index"
+					:channel="channel"
+					status="online"
+					:edit-mode="editMode"
+				></channel>
+			</div>
+			<!-- Offline channels -->
+			<div class="channels__offline">
+				<h3>Offline</h3>
+				<channel v-for="(index, channel) of channels.offline | orderBy 'display_name'"
+					track-by="_id"
+					:index="index"
+					:channel="channel"
+					status="offline"
+					:edit-mode="editMode"
+				></channel>
+			</div>
+		</section>
+
+		<footer class="primary-footer">
+			<a href="http://wiktorczajkowski.xyz">Wiktor Czajkowski</a>&copy; 2016. All right reserved.
+		</footer>
+
+		<template id="channel-template">
+			<article class="channel" :class="'channel--' + status">
+				<header class="top">
+					<div class="avatar__container">
+						<img v-if="channel.logo" :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar">
+						<div v-else class="avatar avatar--placeholder">
+							<span class="avatar--placeholder__text">?</span>
+						</div>
+					</div>
+					<h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'">{{ channel.display_name }}</a></h4>
+				</header>
+				<section class="bottom">
+					<p class="status">{{ status === 'online' ? channel.status : 'Offline' }}</p>
+				</section>
+				<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="delete-button">Remove stream</button>
+			</article>
+		</template>
+
+		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700">
+		<script src="js/vue.js"></script>
+		<script src="js/localforage.min.js"></script>
+		<script src="//code.jquery.com/jquery-2.2.2.min.js"></script>
+		<script src="js/main.js"></script>
+	</body>
 </html>
