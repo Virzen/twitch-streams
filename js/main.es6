@@ -8,7 +8,6 @@ const data = {
 		'ESL_LOL',
 		'ESL_SC2',
 		'SmoothMcGroove',
-		'brunofin',
 		'ESL_CSGO',
 		'ObamaCareTeam',
 	],
@@ -19,11 +18,11 @@ const data = {
 	}),
 	channelInfos: {
 		online: [
-			{
-				display_name: 'Test',
-				logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
-				status: 'Test test',
-			},
+			// {
+			// 	display_name: 'Test',
+			// 	logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
+			// 	status: 'Test test',
+			// },
 		],
 		offline: [],
 		nonexistent: [],
@@ -41,7 +40,7 @@ const DOMElements = {
 };
 
 // TODO: add passing any parameters
-const url = function url(endpoint, data, query) {
+const createUrl = function createUrl(endpoint, data, query) {
 	return `https://api.twitch.tv/kraken/${endpoint}${data ? '/' + data : ''}?api_version=3${query ? `&q=${query}` : ''}`;
 };
 
@@ -59,7 +58,7 @@ const getInfos = function getInfos(callback, list) {
 	const get = apiCall.bind(null, callback);
 	const type = 'streams';
 
-	list.forEach(name => get(url(type, name)));
+	list.forEach(name => get(createUrl(type, name)));
 };
 
 /**
@@ -70,6 +69,7 @@ const getInfos = function getInfos(callback, list) {
  */
 const saveChannelInfo = function saveChannelInfo(storage, request, status) {
 	const response = request.responseJSON;
+	console.log(request);
 
 	if (response) {
 		if (status === 'error') {
@@ -114,15 +114,16 @@ new Vue({
 	el: '#app',
 
 	data: {
+		channelNames: data.channelNames,
 		channels: data.channelInfos,
-		editMode: false,
+		editMode: false
 	},
 
 	methods: {
 		toggleEditMode() {
 			this.editMode = !this.editMode;
 			return this.editMode;
-		},
+		}
 	},
 
 	events: {
@@ -132,8 +133,8 @@ new Vue({
 		},
 		addStream(name) {
 			const save = saveChannelInfo.bind(null, this.channels);
-			apiCall(save, url('streams', this.streamName));
-		},
+			apiCall(save, createUrl('streams', name));
+		}
 	},
 
 	components: {
@@ -145,8 +146,8 @@ new Vue({
 			methods: {
 				removeChannel(index, status) {
 					this.$dispatch('removeChannel', index, status);
-				},
-			},
+				}
+			}
 		},
 
 		'search-form': {
@@ -157,18 +158,24 @@ new Vue({
 					streamName: '',
 					searchResults: [],
 					resultsTotal: 0,
+					selectedChannels: [],
 				};
 			},
 
 			computed: {
-				resultsShown: function () {
+				resultsNumber: function () {
 					return this.searchResults.length;
-				},
+				}
 			},
 
 			methods: {
-				addStream(name) {
-					this.$dispatch('addStream', name);
+				addSelected() {
+					if (this.selectedChannels) {
+						const vm = this;
+						this.selectedChannels.forEach(name => {
+							vm.$dispatch('addStream', name);
+						});
+					}
 				},
 				save(request, status) {
 					const response = request.responseJSON;
@@ -182,20 +189,16 @@ new Vue({
 						throw new Error('No JSON object in response.');
 					}
 				},
-				findStream() {
+				findStream(event, url) {
 					if (this.streamName) {
-						apiCall(this.save, url('search/channels', null, this.streamName));
-					}
-				},
-			},
+						url = url || createUrl('search/channels', null, this.streamName);
 
-			components: {
-				'search-result': {
-					props: ['result'],
-				},
-			},
-		},
+						apiCall(this.save, url);
+					}
+				}
+			}
+		}
 	},
 
-	ready: init,
+	ready: init
 });

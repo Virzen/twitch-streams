@@ -18,25 +18,29 @@
 			<button type="button" @click="toggleEditMode" class="edit-mode-button">Toggle editing</button>
 			<!-- Edit form -->
 			<search-form :edit-mode="editMode" inline-template>
-				<form v-show="editMode" class="edit-form">
+				<form v-show="editMode" @submit.prevent="addSelected" class="edit-form">
 					<label>Search channels
 						<input type="text" v-model="streamName" @input="findStream | debounce 200">
 					</label>
-					<div class="search-results" v-show="searchResults.length > 0">
-						Results in total: {{ resultsTotal }}.<br>
-						Showing {{ resultsShown }}.
-						<search-result
+					<div class="search-results" v-show="resultsNumber > 0">
+						<p>
+							Showing {{ resultsNumber }} most relevant results out of {{ resultsTotal }} total.
+						</p>
+
+						<div class="search-result"
 							v-for="result of searchResults"
 							track-by="_id"
-							:result="result"
-							inline-template
 						>
-							<div class="search-result">
-								<label>
-									<input type="checkbox">{{ result.name }}</checkbox>
-								</label>
-							</div>
-						</search-result>
+							<label>
+								<input type="checkbox"
+									v-model="selectedChannels"
+									:value="result.name"
+								>
+									{{ result.display_name }}
+							</label>
+						</div>
+
+						<button type="submit">Add selected</button>
 					</div>
 					<div v-else>No results found.</div>
 				</form>

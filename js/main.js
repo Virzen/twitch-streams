@@ -4,18 +4,20 @@
 // App data
 
 var data = {
-	channelNames: ['freecodecamp', 'ESL_LOL', 'ESL_SC2', 'SmoothMcGroove', 'brunofin', 'ESL_CSGO', 'ObamaCareTeam'],
+	channelNames: ['freecodecamp', 'ESL_LOL', 'ESL_SC2', 'SmoothMcGroove', 'ESL_CSGO', 'ObamaCareTeam'],
 	statuses: Object.freeze({
 		0: 'online',
 		1: 'offline',
 		2: 'nonexistent'
 	}),
 	channelInfos: {
-		online: [{
-			display_name: 'Test',
-			logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
-			status: 'Test test'
-		}],
+		online: [
+			// {
+			// 	display_name: 'Test',
+			// 	logo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/esl_csgo-profile_image-546a0c1883798a41-300x300.jpeg',
+			// 	status: 'Test test',
+			// },
+		],
 		offline: [],
 		nonexistent: []
 	}
@@ -31,7 +33,7 @@ var DOMElements = {
 };
 
 // TODO: add passing any parameters
-var url = function url(endpoint, data, query) {
+var createUrl = function createUrl(endpoint, data, query) {
 	return 'https://api.twitch.tv/kraken/' + endpoint + (data ? '/' + data : '') + '?api_version=3' + (query ? '&q=' + query : '');
 };
 
@@ -50,7 +52,7 @@ var getInfos = function getInfos(callback, list) {
 	var type = 'streams';
 
 	list.forEach(function (name) {
-		return get(url(type, name));
+		return get(createUrl(type, name));
 	});
 };
 
@@ -62,6 +64,7 @@ var getInfos = function getInfos(callback, list) {
  */
 var saveChannelInfo = function saveChannelInfo(storage, request, status) {
 	var response = request.responseJSON;
+	console.log(request);
 
 	if (response) {
 		if (status === 'error') {
@@ -99,6 +102,7 @@ new Vue({
 	el: '#app',
 
 	data: {
+		channelNames: data.channelNames,
 		channels: data.channelInfos,
 		editMode: false
 	},
@@ -119,7 +123,7 @@ new Vue({
 		},
 		addStream: function addStream(name) {
 			var save = saveChannelInfo.bind(null, this.channels);
-			apiCall(save, url('streams', this.streamName));
+			apiCall(save, createUrl('streams', name));
 		}
 	},
 
@@ -143,19 +147,29 @@ new Vue({
 				return {
 					streamName: '',
 					searchResults: [],
-					resultsTotal: 0
+					resultsTotal: 0,
+					selectedChannels: []
 				};
 			},
 
 			computed: {
-				resultsShown: function resultsShown() {
+				resultsNumber: function resultsNumber() {
 					return this.searchResults.length;
 				}
 			},
 
 			methods: {
-				addStream: function addStream(name) {
-					this.$dispatch('addStream', name);
+				addSelected: function addSelected() {
+					var _this = this;
+
+					if (this.selectedChannels) {
+						(function () {
+							var vm = _this;
+							_this.selectedChannels.forEach(function (name) {
+								vm.$dispatch('addStream', name);
+							});
+						})();
+					}
 				},
 				save: function save(request, status) {
 					var response = request.responseJSON;
@@ -168,16 +182,12 @@ new Vue({
 						throw new Error('No JSON object in response.');
 					}
 				},
-				findStream: function findStream() {
+				findStream: function findStream(event, url) {
 					if (this.streamName) {
-						apiCall(this.save, url('search/channels', null, this.streamName));
-					}
-				}
-			},
+						url = url || createUrl('search/channels', null, this.streamName);
 
-			components: {
-				'search-result': {
-					props: ['result']
+						apiCall(this.save, url);
+					}
 				}
 			}
 		}
