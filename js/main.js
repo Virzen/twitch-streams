@@ -1,8 +1,13 @@
 /* global $ Vue localforage */
 'use strict';
 
-// App defaults
+if (!Array.prototype.find) {
+	Array.prototype.find = function find(func) {
+		return this.filter(func)[0];
+	};
+}
 
+// App defaults
 var defaults = {
 	channelNames: ['freecodecamp', 'esl_lol', 'esl_sc2', 'smoothmcgroove', 'esl_csgo', 'obamacareteam'],
 	statuses: Object.freeze({

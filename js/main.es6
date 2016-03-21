@@ -1,6 +1,12 @@
 /* global $ Vue localforage */
 'use strict';
 
+if (!Array.prototype.find) {
+	Array.prototype.find = function find(func) {
+		return this.filter(func)[0];
+	};
+}
+
 // App defaults
 const defaults = {
 	channelNames: [
