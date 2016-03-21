@@ -2,19 +2,22 @@
 	box-sizing: border-box;
 }
 
+body {
+	background-color: #333;
+	max-width: 45rem;
+	margin: 0 auto;
+	padding: 1.45rem 1.45rem 0;
+}
+
 html {
 	font-size: 1.125em;
 }
 
 body {
-	background-color: #333;
 	font-family: 'Raleway', sans-serif;
 	font-weight: 400;
 	line-height: 1.45;
 	color: white;
-	max-width: 45rem;
-	margin: 0 auto;
-	padding: 1.45rem 1.45rem 0;
 	font-variant-ligatures: none;
 }
 
@@ -69,8 +72,55 @@ a:hover {
 	border: 0;
 }
 
-div[class^=channels__] {
-	margin: 4.35rem 0;
+.heading--inline {
+	margin-top: 1.45rem;
+	display: inline-block;
+}
+
+.settings,
+.channels {
+	margin: 2.9rem 0;
+}
+
+.primary-footer {
+	margin: 1.45rem 0 2.9rem;
+}
+
+.button {
+	background-color: #6441A5;
+	color: white;
+	border: 0;
+}
+
+.button--padded {
+	padding: 0.725rem;
+}
+
+.channel-action-button {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 2.9rem;
+	height: 100%;
+	font-size: 1.45rem;
+}
+
+.edit-form {
+	margin: 1.45rem 0 0;
+}
+
+.search-field {
+	font-size: 1em;
+}
+
+.search-field__label {
+	display: block;
+}
+
+.search-field__input {
+	width: 100%;
+	padding: 0.725rem;
+	font-size: inherit;
 }
 
 .channel {
@@ -81,8 +131,17 @@ div[class^=channels__] {
 	margin-bottom: 2.175rem;
 }
 
-.channel:last-of-type {
-	margin-bottom: 0;
+.channel--small {
+	height: 2.9rem;
+	margin-bottom: 0.725rem;
+}
+
+.top, .bottom {
+	padding-left: 7.25rem;
+}
+
+.channel--small .bottom {
+	display: none;
 }
 
 .avatar {
@@ -94,7 +153,7 @@ div[class^=channels__] {
 	left: 0;
 }
 
-.channel--online .avatar__container:after {
+.channel--online:not(.channel--small) .avatar__container:after {
 	content: '';
 	display: inline-block;
 	position: absolute;
@@ -112,6 +171,20 @@ div[class^=channels__] {
 	background-color: #301A58;
 }
 
+.channel--small .avatar--placeholder {
+	font-size: 2em;
+}
+
+.channel--offline .avatar {
+	filter: grayscale(1);
+}
+
+.channel--small .avatar {
+	width: 2.9rem;
+	height: 2.9rem;
+	left: 2.9rem;
+}
+
 .name {
 	padding: 0.725rem;
 	padding-left: 0;
@@ -122,14 +195,6 @@ div[class^=channels__] {
 	min-height: 2.9rem;
 	padding: 0 0 0.725rem;
 	margin: 0;
-}
-
-.top, .bottom {
-	padding-left: 7.25rem;
-}
-
-.primary-footer {
-	margin: 2.9rem 0;
 }
 
 /*# sourceMappingURL=main.css.map */

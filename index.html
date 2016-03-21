@@ -11,72 +11,84 @@
 			<h1>Twitch Streams</h1>
 		</header>
 
-		<section id="app" class="primary-section channels">
-			<h2 class="sr-only">Channels</h2>
-
-			<!-- Edit button -->
-			<button type="button" @click="toggleEditMode" class="edit-mode-button">Toggle editing</button>
-			<!-- Edit form -->
-			<search-form :edit-mode="editMode" inline-template>
-				<form v-show="editMode" @submit.prevent="addSelected" class="edit-form">
-					<label>Search channels
-						<input type="text" v-model="streamName" @input="findStream | debounce 200">
-					</label>
-					<div class="search-results" v-show="resultsNumber > 0">
-						<p>
-							Showing {{ resultsNumber }} most relevant results out of {{ resultsTotal }} total.
-						</p>
-
-						<div class="search-result"
-							v-for="result of searchResults"
-							track-by="_id"
-						>
-							<label>
-								<input type="checkbox"
-									v-model="selectedChannels"
-									:value="result.name"
-								>
-									{{ result.display_name }}
+		<main id="app">
+			<section class="settings">
+				<!-- Edit button -->
+				<button type="button" @click="toggleEditMode" class="button button--padded edit-mode-button">
+					{{ editMode ? 'Finish adding/removing channels' : 'Add/remove channels' }}
+				</button>
+				<!-- Edit form -->
+				<search-form :edit-mode="editMode" inline-template>
+					<div v-show="editMode" class="edit-form">
+						<div class="search-field">
+							<label class="search-field__label">Search channels
+								<input class="search-field__input" type="text" v-model="streamName" @input="findStream | debounce 200">
 							</label>
 						</div>
 
-						<button type="submit">Add selected</button>
+						<div class="search-results" v-show="resultsNumber > 0">
+							<p>
+								Showing {{ resultsNumber }} most relevant results out of {{ resultsTotal }} total.
+							</p>
+							<!-- search result -->
+							<div class="search-result channel channel--small"
+								v-for="result of searchResults"
+								track-by="_id"
+							>
+								<div class="top">
+									<button v-if="!channelAdded(result.name)" type="button" @click="addStream(result.name)" class="button channel-action-button" title="Add channel to the list">+</button>
+									<button v-else type="button" class="button channel-action-button channel-action-button--disabled" title="Channel already on the list">&#x2713;</button>
+									<div class="avatar__container">
+										<img v-if="result.logo" :src="result.logo" :alt="result.display_name + ' channel logo'" class="avatar">
+										<div v-else class="avatar avatar--placeholder">
+											<span class="avatar--placeholder__text">?</span>
+										</div>
+									</div>
+									<h4 class="name"><a :href="result.url" :title="'Go to ' + result.display_name + ' result'">{{ result.display_name }}</a></h4>
+								</div>
+							</div>
+						</div>
+						<p v-show="noResults">No results found.</p>
 					</div>
-					<div v-else>No results found.</div>
-				</form>
-			</search-form>
+				</search-form>
+			</section>
 
-			<!-- Online channels -->
-			<div class="channels__online">
-				<h3>Online</h3>
-				<channel v-for="(index, channel) of channels.online | orderBy 'display_name'"
-					track-by="_id"
-					:index="index"
-					:channel="channel"
-					status="online"
-					:edit-mode="editMode"
-				></channel>
-			</div>
-			<!-- Offline channels -->
-			<div class="channels__offline">
-				<h3>Offline</h3>
-				<channel v-for="(index, channel) of channels.offline | orderBy 'display_name'"
-					track-by="_id"
-					:index="index"
-					:channel="channel"
-					status="offline"
-					:edit-mode="editMode"
-				></channel>
-			</div>
-		</section>
+			<section class="channels">
+				<h2>Channels</h2>
+
+				<!-- Online channels -->
+				<div class="channels__online">
+					<h3 class="sr-only">Online</h3>
+					<channel v-for="(index, channel) of channels.online | orderBy 'display_name'"
+						track-by="_id"
+						:index="index"
+						:channel="channel"
+						status="online"
+						:edit-mode="editMode"
+					></channel>
+				</div>
+				<!-- Offline channels -->
+				<div class="channels__offline">
+					<h3 class="sr-only">Offline</h3>
+					<channel v-for="(index, channel) of channels.offline | orderBy 'display_name'"
+						track-by="_id"
+						:index="index"
+						:channel="channel"
+						status="offline"
+						:edit-mode="editMode"
+					></channel>
+				</div>
+			</section>
+		</main>
 
 		<footer class="primary-footer">
 			<a href="http://wiktorczajkowski.xyz">Wiktor Czajkowski</a>&copy; 2016. All right reserved.
 		</footer>
 
 		<script type="x/template" id="channel-template">
-			<article class="channel" :class="'channel--' + status">
+			<article class="channel" :class="['channel--' + status, editMode ? 'channel--small' : '' ]">
 				<header class="top">
+					<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="button channel-action-button" title="Remove channel from the list">X</button>
 					<div class="avatar__container">
 						<img v-if="channel.logo" :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar">
 						<div v-else class="avatar avatar--placeholder">
@@ -88,9 +100,8 @@
 				<section class="bottom">
 					<p class="status">{{ status === 'online' ? channel.status : 'Offline' }}</p>
 				</section>
-				<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="delete-button">Remove stream</button>
 			</article>
-		</script type="x/template">
+		</script>
 
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700">
