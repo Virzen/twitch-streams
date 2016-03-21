@@ -1,6 +1,12 @@
 /* global $ Vue localforage */
 'use strict';
 
+if (!Array.prototype.find) {
+	Array.prototype.find = function find(func) {
+		return this.filter(func)[0];
+	};
+}
+
 // App defaults
 const defaults = {
 	channelNames: [
@@ -131,6 +137,9 @@ new Vue({
 		toggleEditMode() {
 			this.editMode = !this.editMode;
 			return this.editMode;
+		},
+		channelAdded(name) {
+			return Boolean(this.channelNames.find(x => x === name));
 		}
 	},
 
@@ -155,7 +164,9 @@ new Vue({
 		channelNames() {
 			const vm = this;
 			localforage.setItem('channelNames', vm.channelNames, function (err, value) {
-				console.log(err, value);
+				if (err) {
+					console.error('Saving changes locally unsuccesful. Error:', err);
+				}
 			});
 		}
 	},
@@ -182,42 +193,45 @@ new Vue({
 					searchResults: [],
 					resultsTotal: 0,
 					selectedChannels: [],
+					firstSearch: true,
 				};
 			},
 
 			computed: {
-				resultsNumber: function () {
+				resultsNumber() {
 					return this.searchResults.length;
+				},
+				noResults() {
+					return !this.firstSearch && this.searchResults.length === 0;
 				}
 			},
 
 			methods: {
-				addSelected() {
-					if (this.selectedChannels) {
-						const vm = this;
-						this.selectedChannels.forEach(name => {
-							vm.$dispatch('addStream', name);
-						});
-					}
+				addStream(name) {
+					this.$dispatch('addStream', name);
 				},
 				save(request, status) {
 					const response = request.responseJSON;
 
 					if (response) {
-						console.log(response);
 						this.resultsTotal = response._total;
 						this.searchResults = response.channels;
+
+						if(this.firstSearch) {
+							this.firstSearch = false;
+						}
 					}
 					else {
 						throw new Error('No JSON object in response.');
 					}
 				},
 				findStream(event, url) {
-					if (this.streamName) {
-						url = url || createUrl('search/channels', null, this.streamName);
+					url = url || createUrl('search/channels', null, this.streamName);
 
-						apiCall(this.save, url);
-					}
+					apiCall(this.save, url);
+				},
+				channelAdded(name) {
+					return this.$parent.channelAdded(name);
 				}
 			}
 		}

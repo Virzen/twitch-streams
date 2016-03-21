@@ -1,34 +1,45 @@
 // compileExpanded
 
+// variables
 // spacing
 $line-height: 1.45;
 $baseline: 1rem * $line-height;
-$avatar-width: $baseline * 4;
+$avatar-size: $baseline * 4;
+$mark-size: $baseline;
+$border-size: $baseline/4;
+$channel-small-height: $baseline * 2;
 
 // colors
 $primary-color: #6441A5;
 $secondary-color: #333;
 $contrast: white;
 $online: #227230;
+$helper-color: #301A58;
 
 
+// base
 * {
 	box-sizing: border-box;
 }
 
+body {
+	background-color: $secondary-color;
+	max-width: 45rem;
+	margin: 0 auto;
+	padding: $baseline $baseline 0;
+}
+
+
+// typography
 html {
 	font-size: 1.125em;
 }
 
 body {
-	background-color: $secondary-color;
 	font-family: 'Raleway', sans-serif;
 	font-weight: 400;
 	line-height: $line-height;
 	color: $contrast;
-	max-width: 45rem;
-	margin: 0 auto;
-	padding: $baseline $baseline 0;
 	font-variant-ligatures: none;
 }
 
@@ -62,6 +73,8 @@ a {
 	}
 }
 
+
+// utils
 .sr-only {
     position: absolute;
     width: 1px;
@@ -73,11 +86,66 @@ a {
     border: 0;
 }
 
-
-div[class^=channels__] {
-	margin: $baseline * 3 0;
+.heading--inline {
+	margin-top: $baseline;
+	display: inline-block;
 }
 
+
+// sections
+.settings,
+.channels {
+	margin: $baseline * 2 0;
+}
+
+.primary-footer {
+	margin: $baseline 0 $baseline * 2;
+}
+
+
+// buttons
+.button {
+	background-color: $primary-color;
+	color: $contrast;
+	border: 0;
+
+	&--padded {
+		padding: $baseline / 2;
+	}
+}
+
+.channel-action-button {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: $channel-small-height;
+	height: 100%;
+	font-size: $baseline;
+}
+
+
+// settings
+.edit-form {
+	margin: $baseline 0 0;
+}
+
+.search-field {
+	font-size: 1em;
+
+	&__label {
+		display: block;
+	}
+
+	&__input {
+		width: 100%;
+		padding: $baseline / 2;
+		font-size: inherit;
+	}
+}
+
+
+
+// channels
 .channel {
 	display: inline-block;
 	position: relative;
@@ -85,40 +153,60 @@ div[class^=channels__] {
 	width: 100%;
 	margin-bottom: $baseline * 1.5;
 
-	&:last-of-type {
-		margin-bottom: 0;
+	&--small {
+		height: $channel-small-height;
+		margin-bottom: $baseline * 0.5;
 	}
 }
 
+.top, .bottom {
+	padding-left: $avatar-size + $baseline;
+}
+
+.channel--small .bottom {
+	display: none;
+}
+
 .avatar {
-	width: $avatar-width;
-	height: $avatar-width;
+	width: $avatar-size;
+	height: $avatar-size;
 	vertical-align: middle;
 	position: absolute;
 	top: 0;
 	left: 0;
 
 	&__container {
-		.channel--online &:after {
-			$size: $baseline;
-			$border-size: $baseline/4;
+		.channel--online:not(.channel--small) &:after {
 			content: '';
 			display: inline-block;
 			position: absolute;
-			left: $avatar-width - $size - $border-size;
-			top: $avatar-width - $size - $border-size;
-			width: $size;
-			height: $size;
+			left: $avatar-size - $mark-size - $border-size;
+			top: $avatar-size - $mark-size - $border-size;
+			width: $mark-size;
+			height: $mark-size;
 			border: $border-size solid $secondary-color;
 			background-color: $online;
 		}
 	}
 
 	&--placeholder {
-
 		text-align: center;
 		font-size: 4em;
-		background-color: #301A58;
+		background-color: $helper-color;
+
+		.channel--small & {
+			font-size: 2em;
+		}
+	}
+
+	.channel--offline & {
+		filter: grayscale(1);
+	}
+
+	.channel--small & {
+		width: $channel-small-height;
+		height: $channel-small-height;
+		left: $channel-small-height;
 	}
 }
 
@@ -132,12 +220,4 @@ div[class^=channels__] {
 	min-height: $baseline * 2;
 	padding: 0 0 $baseline / 2;
 	margin: 0;
-}
-
-.top, .bottom {
-	padding-left: $avatar-width + $baseline;
-}
-
-.primary-footer {
-	margin: $baseline * 2 0;
 }

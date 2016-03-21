@@ -1,8 +1,13 @@
 /* global $ Vue localforage */
 'use strict';
 
-// App defaults
+if (!Array.prototype.find) {
+	Array.prototype.find = function find(func) {
+		return this.filter(func)[0];
+	};
+}
 
+// App defaults
 var defaults = {
 	channelNames: ['freecodecamp', 'esl_lol', 'esl_sc2', 'smoothmcgroove', 'esl_csgo', 'obamacareteam'],
 	statuses: Object.freeze({
@@ -116,6 +121,11 @@ new Vue({
 		toggleEditMode: function toggleEditMode() {
 			this.editMode = !this.editMode;
 			return this.editMode;
+		},
+		channelAdded: function channelAdded(name) {
+			return Boolean(this.channelNames.find(function (x) {
+				return x === name;
+			}));
 		}
 	},
 
@@ -144,7 +154,9 @@ new Vue({
 		channelNames: function channelNames() {
 			var vm = this;
 			localforage.setItem('channelNames', vm.channelNames, function (err, value) {
-				console.log(err, value);
+				if (err) {
+					console.error('Saving changes locally unsuccesful. Error:', err);
+				}
 			});
 		}
 	},
@@ -170,46 +182,45 @@ new Vue({
 					streamName: '',
 					searchResults: [],
 					resultsTotal: 0,
-					selectedChannels: []
+					selectedChannels: [],
+					firstSearch: true
 				};
 			},
 
 			computed: {
 				resultsNumber: function resultsNumber() {
 					return this.searchResults.length;
+				},
+				noResults: function noResults() {
+					return !this.firstSearch && this.searchResults.length === 0;
 				}
 			},
 
 			methods: {
-				addSelected: function addSelected() {
-					var _this = this;
-
-					if (this.selectedChannels) {
-						(function () {
-							var vm = _this;
-							_this.selectedChannels.forEach(function (name) {
-								vm.$dispatch('addStream', name);
-							});
-						})();
-					}
+				addStream: function addStream(name) {
+					this.$dispatch('addStream', name);
 				},
 				save: function save(request, status) {
 					var response = request.responseJSON;
 
 					if (response) {
-						console.log(response);
 						this.resultsTotal = response._total;
 						this.searchResults = response.channels;
+
+						if (this.firstSearch) {
+							this.firstSearch = false;
+						}
 					} else {
 						throw new Error('No JSON object in response.');
 					}
 				},
 				findStream: function findStream(event, url) {
-					if (this.streamName) {
-						url = url || createUrl('search/channels', null, this.streamName);
+					url = url || createUrl('search/channels', null, this.streamName);
 
-						apiCall(this.save, url);
-					}
+					apiCall(this.save, url);
+				},
+				channelAdded: function channelAdded(name) {
+					return this.$parent.channelAdded(name);
 				}
 			}
 		}
