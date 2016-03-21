@@ -108,6 +108,7 @@ a {
 	background-color: $primary-color;
 	color: $contrast;
 	border: 0;
+	cursor: pointer;
 
 	&--padded {
 		padding: $baseline / 2;

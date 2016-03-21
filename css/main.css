@@ -90,6 +90,7 @@ a:hover {
 	background-color: #6441A5;
 	color: white;
 	border: 0;
+	cursor: pointer;
 }
 
 .button--padded {
