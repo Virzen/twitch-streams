@@ -74,7 +74,7 @@
 			<a href="http://wiktorczajkowski.xyz">Wiktor Czajkowski</a>&copy; 2016. All right reserved.
 		</footer>
 
-		<template id="channel-template">
+		<script type="x/template" id="channel-template">
 			<article class="channel" :class="'channel--' + status">
 				<header class="top">
 					<div class="avatar__container">
@@ -90,7 +90,7 @@
 				</section>
 				<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="delete-button">Remove stream</button>
 			</article>
-		</template>
+		</script type="x/template">
 
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700">
