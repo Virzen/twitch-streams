@@ -39,7 +39,9 @@
 									<button v-if="!channelAdded(result.name)" type="button" @click="addStream(result.name)" class="button channel-action-button" title="Add channel to the list">+</button>
 									<button v-else type="button" class="button channel-action-button channel-action-button--disabled" title="Channel already on the list">&#x2713;</button>
 									<div class="avatar__container">
-										<img v-if="result.logo" :src="result.logo" :alt="result.display_name + ' channel logo'" class="avatar">
+										<a v-if="result.logo" :href="result.url" :title="'Go to ' + result.display_name + ' result'">
+											<img :src="result.logo" :alt="result.display_name + ' channel logo'" class="avatar" />
+										</a>
 										<div v-else class="avatar avatar--placeholder">
 											<span class="avatar--placeholder__text">?</span>
 										</div>
@@ -90,12 +92,14 @@
 				<header class="top">
 					<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="button channel-action-button" title="Remove channel from the list">X</button>
 					<div class="avatar__container">
-						<img v-if="channel.logo" :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar">
+						<a v-if="channel.logo" :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'" target="_blank">
+							<img :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar">
+						</a>
 						<div v-else class="avatar avatar--placeholder">
 							<span class="avatar--placeholder__text">?</span>
 						</div>
 					</div>
-					<h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'">{{ channel.display_name }}</a></h4>
+					<h4 class="name"><a :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'" target="_blank">{{ channel.display_name }}</a></h4>
 				</header>
 				<section class="bottom">
 					<p class="status">{{ status === 'online' ? channel.status : 'Offline' }}</p>
