@@ -149,7 +149,9 @@ new Vue({
 		channelNames: function channelNames() {
 			var vm = this;
 			localforage.setItem('channelNames', vm.channelNames, function (err, value) {
-				console.log(err, value);
+				if (err) {
+					console.error('Saving changes locally unsuccesful. Error:', err);
+				}
 			});
 		}
 	},
