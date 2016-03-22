@@ -99,7 +99,7 @@
 		<script type="x/template" id="channel-template">
 			<article class="channel" :class="['channel--' + status, editMode ? 'channel--small' : '' ]">
 				<header class="top">
-					<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="button channel-action-button" title="Remove channel from the list">X</button>
+					<button type="button" v-show="editMode" @click="removeChannel(channel._id, status)" class="button channel-action-button" title="Remove channel from the list">&times;</button>
 					<div class="avatar__container">
 						<a v-if="channel.logo" :href="channel.url" :title="'Go to ' + channel.display_name + ' channel'" target="_blank">
 							<img :src="channel.logo" :alt="channel.display_name + ' channel logo'" class="avatar">
