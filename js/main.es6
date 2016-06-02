@@ -54,7 +54,6 @@
 	 * 
 	 * @param {Function} callback
 	 * @param {String} url
-	 * @return none
 	 */
 	const apiCall = function apiCall(callback, url) {
 		$.ajax({
@@ -69,7 +68,6 @@
 	 * 
 	 * @param {Function} callback
 	 * @param {Array} list
-	 * @return none
 	 */
 	const getInfos = function getInfos(callback, list) {
 		// curry apiCall function with callback
@@ -83,7 +81,6 @@
 	* Finds out channel's status and saves it in data property accordingly
 	* @param  {JSON} request
 	* @param  {string} status
-	* @return none
 	*/
 	const saveChannelInfo = function saveChannelInfo(storage, request, status) {
 		const response = request.responseJSON;
