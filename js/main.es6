@@ -35,12 +35,27 @@
 		},
 	};
 
-	// TODO: add passing any parameters
+	/**
+	 * Returns url to Twitch.tv API endpoint with given 
+	 * parameters.
+	 * 
+	 * @param {String} endpoint
+	 * @param {Object} data
+	 * @param {String} query
+	 * @return {String} url
+	 */
 	const createUrl = function createUrl(endpoint, data, query) {
 		return `https://api.twitch.tv/kraken/${endpoint}${data ? '/' + data : ''}?api_version=3${query ? `&q=${query}` : ''}`;
 	};
 
-	// API calls
+	/**
+	 * Performs AJAX request to given url. 
+	 * Executes callback after completion (success or error).
+	 * 
+	 * @param {Function} callback
+	 * @param {String} url
+	 * @return none
+	 */
 	const apiCall = function apiCall(callback, url) {
 		$.ajax({
 			type: 'GET',
@@ -49,6 +64,13 @@
 		});
 	};
 
+	/**
+	 * Requests data for channels given. Passes callback.
+	 * 
+	 * @param {Function} callback
+	 * @param {Array} list
+	 * @return none
+	 */
 	const getInfos = function getInfos(callback, list) {
 		// curry apiCall function with callback
 		const get = apiCall.bind(null, callback);
@@ -95,13 +117,6 @@
 		else {
 			throw new Error('No JSON object in response.');
 		}
-	};
-
-
-	// Initializing function
-	const init = function init(channelList) {
-
-
 	};
 
 
